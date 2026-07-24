@@ -17,10 +17,8 @@
     <div class="container">
       <a href="#" class="navbar-logo">Arte con Arcilla</a>
       <ul class="navbar-links" id="navLinks">
-        <li><a href="#nosotros">Nosotros</a></li>
+        <li><a href="#scrollytelling">Proceso</a></li>
         <li><a href="#coleccion">Colección</a></li>
-        <li><a href="#proceso">Proceso</a></li>
-        <li><a href="#galeria">Galería</a></li>
         <li><a href="#contacto">Contacto</a></li>
       </ul>
       <div class="navbar-toggle" id="navToggle" aria-label="Abrir menú de navegación">
@@ -31,48 +29,60 @@
     </div>
   </nav>
 
-  <!-- ========== HERO ========== -->
-  <section class="hero" id="hero">
-    <div class="hero-bg">
-      <img src="assets/images/hero.png" alt="Taller de cerámica artesanal">
-    </div>
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <h1>Piezas únicas con <span class="accent">alma</span></h1>
-      <p>Cerámica artesanal hecha a mano con arcilla fría. Cada pieza cuenta una historia de dedicación, textura y
-        calidez.</p>
-      <div class="hero-cta">
-        <a href="#coleccion" class="btn btn-primary">Explorar Colección</a>
-        <a href="#nosotros" class="btn btn-outline"
-          style="border-color: rgba(255,253,248,0.5); color: var(--blanco);">Conócenos</a>
-      </div>
-    </div>
-    <div class="hero-scroll">
-      <span></span>
-    </div>
-  </section>
+  <!-- ========== SCROLLYTELLING ========== -->
+  <section class="scrollytelling" id="scrollytelling">
+    <div class="canvas-container">
+      <canvas id="scrollCanvas"></canvas>
+      <div class="scrollytelling-overlay"></div>
 
-  <!-- ========== SOBRE NOSOTROS ========== -->
-  <section class="section" id="nosotros">
-    <div class="container">
-      <div class="about-grid">
-        <div class="about-text fade-in-left">
-          <span class="section-label">Nuestra Historia</span>
-          <h2>Donde la arcilla cobra vida</h2>
-          <p>
-            En Arte con Arcilla creemos que cada pieza debe ser tan única como quien la recibe.
-            Trabajamos con arcilla fría, dándole forma con las manos y el corazón, cuidando
-            cada detalle desde el moldeo hasta el acabado final.
-          </p>
-          <p>
-            Nuestro taller es un espacio donde la creatividad se encuentra con la tradición.
-            Cada textura, cada curva y cada color nace de la pasión por crear objetos que
-            transforman los espacios cotidianos en algo especial.
-          </p>
-          <p class="signature">— Arte con Arcilla</p>
+      <!-- Panel 0: Hero -->
+      <div class="scroll-panel active" id="panelHero">
+        <div class="panel-content">
+          <h1>Piezas únicas con <span class="accent">alma</span></h1>
+          <p>Cerámica artesanal hecha a mano con arcilla fría. Cada pieza cuenta una historia de dedicación, textura y calidez.</p>
+          <div class="hero-cta">
+            <a href="#coleccion" class="btn btn-primary">Explorar Colección</a>
+            <a href="#contacto" class="btn btn-outline" style="border-color: rgba(255,253,248,0.5); color: var(--blanco);">Conócenos</a>
+          </div>
         </div>
-        <div class="about-image fade-in-right">
-          <img src="assets/images/workshop.png" alt="Manos de artesano moldeando arcilla en el taller">
+        <div class="hero-scroll">
+          <span></span>
+        </div>
+      </div>
+
+      <!-- Panel 1: Moldear -->
+      <div class="scroll-panel" id="panelMoldear">
+        <div class="panel-content glass-card">
+          <div class="process-step-number">
+            <span>1</span>
+          </div>
+          <div class="process-step-icon">🤲</div>
+          <h3>Moldear</h3>
+          <p>Damos forma a la arcilla fría con las manos, creando cada pieza con atención al detalle y amor por el oficio.</p>
+        </div>
+      </div>
+
+      <!-- Panel 2: Secar -->
+      <div class="scroll-panel" id="panelSecar">
+        <div class="panel-content glass-card">
+          <div class="process-step-number">
+            <span>2</span>
+          </div>
+          <div class="process-step-icon">☀️</div>
+          <h3>Secar</h3>
+          <p>La pieza reposa y seca naturalmente al aire, adquiriendo firmeza y su forma definitiva con el tiempo.</p>
+        </div>
+      </div>
+
+      <!-- Panel 3: Esmaltado -->
+      <div class="scroll-panel" id="panelEsmaltado">
+        <div class="panel-content glass-card">
+          <div class="process-step-number">
+            <span>3</span>
+          </div>
+          <div class="process-step-icon">🎨</div>
+          <h3>Esmaltado</h3>
+          <p>Aplicamos los acabados finales a mano: color, textura y protección para una pieza hermosa y duradera.</p>
         </div>
       </div>
     </div>
@@ -90,23 +100,22 @@
 
         <div class="product-card fade-in delay-1">
           <div class="product-card-image">
-            <img src="assets/images/bowl.png" alt="Bowl artesanal de cerámica">
+            <img src="assets\images\prod-van_gogh.webp" alt="Producto de Van Gogh">
             <div class="overlay"></div>
           </div>
           <div class="product-card-info">
-            <span class="category">Hogar</span>
-            <h4>Bowl Rústico</h4>
+            <h4>Van Gogh</h4>
             <span class="price">$45.000</span>
           </div>
         </div>
 
         <div class="product-card fade-in delay-2">
           <div class="product-card-image">
-            <img src="assets/images/vase.png" alt="Jarrón artesanal de cerámica">
+            <img src="assets\images\prod-noche_estrellada.webp" alt="Producto noche estrellada">
             <div class="overlay"></div>
           </div>
           <div class="product-card-info">
-            <span class="category">Decoración</span>
+            <span class="category">Noche Estrellada</span>
             <h4>Jarrón Orgánico</h4>
             <span class="price">$68.000</span>
           </div>
@@ -114,24 +123,22 @@
 
         <div class="product-card fade-in delay-3">
           <div class="product-card-image">
-            <img src="assets/images/mug.png" alt="Taza artesanal de cerámica">
+            <img src="assets\images\prod-craneo.webp" alt="Producto Craneo">
             <div class="overlay"></div>
           </div>
           <div class="product-card-info">
-            <span class="category">Mesa</span>
-            <h4>Taza Artesanal</h4>
+            <h4>Craneo</h4>
             <span class="price">$32.000</span>
           </div>
         </div>
 
         <div class="product-card fade-in delay-4">
           <div class="product-card-image">
-            <img src="assets/images/plate.png" alt="Plato artesanal de cerámica">
+            <img src="assets\images\prod-totoro.webp" alt="Producto Totoro">
             <div class="overlay"></div>
           </div>
           <div class="product-card-info">
-            <span class="category">Mesa</span>
-            <h4>Plato Terra</h4>
+            <h4>Totoro</h4>
             <span class="price">$38.000</span>
           </div>
         </div>
@@ -140,79 +147,6 @@
       <div class="collection-cta fade-in">
         <a href="https://wa.me/573001234567?text=Hola%2C%20me%20interesa%20conocer%20toda%20la%20colecci%C3%B3n"
           class="btn btn-primary">Ver toda la colección</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== PROCESO ========== -->
-  <section class="section" id="proceso">
-    <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Cómo lo hacemos</span>
-        <h2>Proceso Artesanal</h2>
-        <p>Cada pieza pasa por un proceso cuidadoso de tres etapas, hecho completamente a mano con arcilla fría.</p>
-      </div>
-      <div class="process-steps">
-
-        <div class="process-step fade-in delay-1">
-          <div class="process-step-number">
-            <span>1</span>
-          </div>
-          <div class="process-step-icon">🤲</div>
-          <h3>Moldear</h3>
-          <p>Damos forma a la arcilla fría con las manos, creando cada pieza con atención al detalle y amor por el
-            oficio.</p>
-        </div>
-
-        <div class="process-step fade-in delay-3">
-          <div class="process-step-number">
-            <span>2</span>
-          </div>
-          <div class="process-step-icon">☀️</div>
-          <h3>Secar</h3>
-          <p>La pieza reposa y seca naturalmente al aire, adquiriendo firmeza y su forma definitiva con el tiempo.</p>
-        </div>
-
-        <div class="process-step fade-in delay-5">
-          <div class="process-step-number">
-            <span>3</span>
-          </div>
-          <div class="process-step-icon">🎨</div>
-          <h3>Esmaltado</h3>
-          <p>Aplicamos los acabados finales a mano: color, textura y protección para una pieza hermosa y duradera.</p>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== GALERÍA ========== -->
-  <section class="section section-alt" id="galeria">
-    <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Inspiración</span>
-        <h2>Galería</h2>
-        <p>Un vistazo a nuestras creaciones y al proceso que hay detrás de cada pieza.</p>
-      </div>
-      <div class="gallery-grid">
-        <div class="gallery-item wide fade-in delay-1">
-          <img src="assets/images/hero.png" alt="Colección de cerámica artesanal">
-        </div>
-        <div class="gallery-item fade-in delay-2">
-          <img src="assets/images/bowl.png" alt="Bowl artesanal">
-        </div>
-        <div class="gallery-item fade-in delay-3">
-          <img src="assets/images/vase.png" alt="Jarrón artesanal">
-        </div>
-        <div class="gallery-item tall fade-in delay-1">
-          <img src="assets/images/workshop.png" alt="Proceso artesanal en el taller">
-        </div>
-        <div class="gallery-item fade-in delay-2">
-          <img src="assets/images/mug.png" alt="Taza de cerámica">
-        </div>
-        <div class="gallery-item wide fade-in delay-3">
-          <img src="assets/images/plate.png" alt="Plato artesanal">
-        </div>
       </div>
     </div>
   </section>
@@ -292,11 +226,10 @@
         <div>
           <h4>Navegación</h4>
           <div class="footer-links">
-            <a href="#hero">Inicio</a>
-            <a href="#nosotros">Nosotros</a>
+            <a href="#scrollytelling">Inicio</a>
+            <a href="#contacto">Contacto</a>
             <a href="#coleccion">Colección</a>
-            <a href="#proceso">Proceso</a>
-            <a href="#galeria">Galería</a>
+            <a href="#scrollytelling">Proceso</a>
             <a href="#contacto">Contacto</a>
           </div>
         </div>
@@ -316,6 +249,9 @@
   </footer>
 
   <!-- ========== JAVASCRIPT ========== -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+  <script src="js/scrollytelling.js"></script>
   <script src="js/main.js"></script>
 
 </body>
