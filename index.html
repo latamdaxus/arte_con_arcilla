@@ -89,64 +89,92 @@
   </section>
 
   <!-- ========== COLECCIÓN ========== -->
-  <section class="section section-alt" id="coleccion">
-    <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Nuestras Piezas</span>
-        <h2>Colección Destacada</h2>
-        <p>Piezas artesanales únicas, hechas con arcilla fría y terminadas a mano con esmero en cada detalle.</p>
-      </div>
-      <div class="collection-grid">
+  <section class="collection-scrollytelling" id="coleccion">
+    <div class="collection-sticky-container">
+      <div class="collection-layout">
 
-        <div class="product-card fade-in delay-1">
-          <div class="product-card-image">
-            <img src="assets\images\prod-van_gogh.webp" alt="Producto de Van Gogh">
-            <div class="overlay"></div>
+        <!-- Sidebar Fijo Izquierdo -->
+        <div class="collection-sidebar">
+          <div class="sidebar-header">
+            <span class="section-label">Nuestras Piezas</span>
+            <h2>Colección<br>Destacada</h2>
+            <p>Piezas artesanales únicas, hechas con arcilla fría y terminadas a mano con esmero.</p>
           </div>
-          <div class="product-card-info">
-            <h4>Van Gogh</h4>
-            <span class="price">$45.000</span>
+          <div class="collection-progress-wrapper">
+            <div class="collection-counter">
+              <span id="active-card-num">01</span><span class="counter-sep">/</span><span class="counter-total">04</span>
+            </div>
+            <div class="collection-progressbar">
+              <div class="collection-progressbar-fill" id="collection-progressbar-fill"></div>
+            </div>
+            <div class="collection-card-name" id="collection-card-name">Van Gogh</div>
+          </div>
+          <div class="collection-sidebar-cta">
+            <a href="https://wa.me/573001234567?text=Hola%2C%20me%20interesa%20la%20colecci%C3%B3n"
+              class="btn btn-primary" target="_blank">Ver todas</a>
           </div>
         </div>
 
-        <div class="product-card fade-in delay-2">
-          <div class="product-card-image">
-            <img src="assets\images\prod-noche_estrellada.webp" alt="Producto noche estrellada">
-            <div class="overlay"></div>
-          </div>
-          <div class="product-card-info">
-            <span class="category">Noche Estrellada</span>
-            <h4>Jarrón Orgánico</h4>
-            <span class="price">$68.000</span>
+        <!-- Track del Carrusel -->
+        <div class="collection-carousel-container">
+          <div class="collection-carousel-track" id="collectionCarouselTrack">
+
+            <!-- Tarjeta 1: Van Gogh -->
+            <div class="collection-card" data-index="0" data-name="Van Gogh" data-price="$45.000">
+              <div class="collection-card-inner">
+                <div class="collection-card-image">
+                  <img src="assets/images/prod-van_gogh.webp" alt="Van Gogh">
+                </div>
+                <div class="collection-card-label">
+                  <span class="collection-card-label-name">Van Gogh</span>
+                  <span class="collection-card-label-price">$45.000</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tarjeta 2: Jarrón Orgánico -->
+            <div class="collection-card" data-index="1" data-name="Jarrón Orgánico" data-price="$68.000">
+              <div class="collection-card-inner">
+                <div class="collection-card-image">
+                  <img src="assets/images/prod-noche_estrellada.webp" alt="Noche Estrellada">
+                </div>
+                <div class="collection-card-label">
+                  <span class="collection-card-label-cat">Noche Estrellada</span>
+                  <span class="collection-card-label-name">Jarrón Orgánico</span>
+                  <span class="collection-card-label-price">$68.000</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tarjeta 3: Craneo -->
+            <div class="collection-card" data-index="2" data-name="Craneo" data-price="$32.000">
+              <div class="collection-card-inner">
+                <div class="collection-card-image">
+                  <img src="assets/images/prod-craneo.webp" alt="Craneo">
+                </div>
+                <div class="collection-card-label">
+                  <span class="collection-card-label-name">Craneo</span>
+                  <span class="collection-card-label-price">$32.000</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tarjeta 4: Totoro -->
+            <div class="collection-card" data-index="3" data-name="Totoro" data-price="$38.000">
+              <div class="collection-card-inner">
+                <div class="collection-card-image">
+                  <img src="assets/images/prod-totoro.webp" alt="Totoro">
+                </div>
+                <div class="collection-card-label">
+                  <span class="collection-card-label-name">Totoro</span>
+                  <span class="collection-card-label-price">$38.000</span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div class="product-card fade-in delay-3">
-          <div class="product-card-image">
-            <img src="assets\images\prod-craneo.webp" alt="Producto Craneo">
-            <div class="overlay"></div>
-          </div>
-          <div class="product-card-info">
-            <h4>Craneo</h4>
-            <span class="price">$32.000</span>
-          </div>
-        </div>
-
-        <div class="product-card fade-in delay-4">
-          <div class="product-card-image">
-            <img src="assets\images\prod-totoro.webp" alt="Producto Totoro">
-            <div class="overlay"></div>
-          </div>
-          <div class="product-card-info">
-            <h4>Totoro</h4>
-            <span class="price">$38.000</span>
-          </div>
-        </div>
-
-      </div>
-      <div class="collection-cta fade-in">
-        <a href="https://wa.me/573001234567?text=Hola%2C%20me%20interesa%20conocer%20toda%20la%20colecci%C3%B3n"
-          class="btn btn-primary">Ver toda la colección</a>
       </div>
     </div>
   </section>

@@ -606,85 +606,307 @@ p {
   z-index: -1;
 }
 
-/* --- Colección --- */
-.collection-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-2xl);
+/* --- Colección Cinematográfica --- */
+.collection-scrollytelling {
+  position: relative;
+  height: 400vh;
+  background-color: var(--carbon);
 }
 
-.product-card {
-  background: var(--blanco);
+.collection-sticky-container {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+}
+
+.collection-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sidebar */
+.collection-sidebar {
+  width: 300px;
+  min-width: 300px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 2.5rem 3rem 3rem;
+  background: var(--carbon);
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.collection-sidebar::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(255,253,248,0.15), transparent);
+}
+
+.sidebar-header {
+  margin-bottom: 2.5rem;
+}
+
+.sidebar-header .section-label {
+  color: var(--arcilla);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.sidebar-header h2 {
+  color: var(--blanco);
+  font-size: var(--text-3xl);
+  margin-bottom: 1rem;
+  line-height: 1.15;
+}
+
+.sidebar-header p {
+  color: rgba(255,253,248,0.55);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
+/* Progress & Counter */
+.collection-progress-wrapper {
+  margin-bottom: 2.5rem;
+}
+
+.collection-counter {
+  font-family: var(--font-display);
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.875rem;
+}
+
+.collection-counter #active-card-num {
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  color: var(--blanco);
+  line-height: 1;
+  min-width: 2.5ch;
+  display: inline-block;
+}
+
+.collection-counter .counter-sep {
+  font-size: var(--text-lg);
+  color: rgba(255,253,248,0.3);
+  margin: 0 0.1rem;
+}
+
+.collection-counter .counter-total {
+  font-size: var(--text-lg);
+  color: rgba(255,253,248,0.3);
+}
+
+.collection-progressbar {
+  height: 2px;
+  background: rgba(255,253,248,0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.collection-progressbar-fill {
+  height: 100%;
+  width: 25%;
+  background: linear-gradient(to right, var(--arcilla), var(--terracota));
+  border-radius: 2px;
+  transform-origin: left;
+  transition: width 0.1s linear;
+}
+
+.collection-card-name {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  color: rgba(255,253,248,0.5);
+  font-style: italic;
+  letter-spacing: 0.5px;
+  min-height: 1.5em;
+}
+
+.collection-sidebar-cta {
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+/* Carousel Container */
+.collection-carousel-container {
+  flex: 1;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.collection-carousel-track {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 0 15vw 0 6vw;
+  will-change: transform;
+}
+
+/* Cards */
+.collection-card {
+  flex-shrink: 0;
+  width: 28vw;
+  height: 72vh;
+  cursor: pointer;
+  transform-origin: center center;
+  will-change: transform, opacity, filter;
+}
+
+.collection-card-inner {
+  width: 100%;
+  height: 100%;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: all var(--transition-base);
-  box-shadow: 0 4px 15px var(--sombra-suave);
-}
-
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 40px var(--sombra-media);
-}
-
-.product-card-image {
   position: relative;
-  overflow: hidden;
-  aspect-ratio: 4 / 5;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
 }
 
-.product-card-image img {
+.collection-card-image {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.collection-card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-slow);
+  object-position: center;
+  display: block;
 }
 
-.product-card:hover .product-card-image img {
-  transform: scale(1.08);
-}
-
-.product-card-image .overlay {
+/* Label sobreimpreso en la tarjeta */
+.collection-card-label {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(58, 47, 40, 0.5), transparent);
-  opacity: 0;
-  transition: opacity var(--transition-base);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1.75rem 1.75rem;
+  background: linear-gradient(to top, rgba(20,14,10,0.85) 0%, rgba(20,14,10,0.4) 60%, transparent 100%);
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: var(--space-xl);
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
-.product-card:hover .product-card-image .overlay {
-  opacity: 1;
-}
-
-.product-card-info {
-  padding: var(--space-lg) var(--space-xl);
-}
-
-.product-card-info h4 {
-  font-family: var(--font-display);
-  margin-bottom: var(--space-xs);
-}
-
-.product-card-info .price {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--terracota);
-}
-
-.product-card-info .category {
-  font-size: var(--text-sm);
-  color: var(--tierra);
+.collection-card-label-cat {
+  font-size: var(--text-xs);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  color: var(--arcilla);
+  font-weight: 500;
 }
 
-.collection-cta {
-  text-align: center;
-  margin-top: var(--space-3xl);
+.collection-card-label-name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--blanco);
 }
+
+.collection-card-label-price {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--arcilla);
+  letter-spacing: 0.5px;
+}
+
+/* =============================================
+   RESPONSIVE — Colección: fallback mobile
+   ============================================= */
+@media (max-width: 768px) {
+  /* En mobile: layout vertical scroll normal */
+  .collection-scrollytelling {
+    height: auto;
+    background-color: var(--arena);
+  }
+
+  .collection-sticky-container {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding: var(--space-3xl) 0 var(--space-2xl);
+  }
+
+  .collection-layout {
+    flex-direction: column;
+  }
+
+  .collection-sidebar {
+    width: 100%;
+    min-width: unset;
+    padding: 0 var(--space-md) var(--space-2xl);
+    background: transparent;
+  }
+
+  .collection-sidebar::after {
+    display: none;
+  }
+
+  .sidebar-header h2 {
+    color: var(--carbon);
+  }
+
+  .sidebar-header .section-label {
+    color: var(--terracota);
+  }
+
+  .sidebar-header p {
+    color: var(--tierra);
+  }
+
+  .collection-progress-wrapper {
+    display: none;
+  }
+
+  .collection-sidebar-cta {
+    margin-top: var(--space-lg);
+    padding-top: 0;
+  }
+
+  .collection-carousel-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 var(--space-md) var(--space-xl);
+  }
+
+  .collection-carousel-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .collection-carousel-track {
+    padding: 0;
+    gap: 1.25rem;
+    transform: none !important; /* Desactivar GSAP en mobile */
+  }
+
+  .collection-card {
+    width: 75vw;
+    height: 55vh;
+    /* Resetear efectos de depth-of-field en mobile */
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
+
+
 
 
 
@@ -873,8 +1095,13 @@ p {
     gap: var(--space-2xl);
   }
 
-  .collection-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .collection-sidebar {
+    width: 260px;
+    min-width: 260px;
+  }
+  .collection-card {
+    width: 36vw;
+    height: 65vh;
   }
 
   .gallery-grid {
@@ -952,12 +1179,6 @@ p {
     display: none;
   }
 
-  /* Collection */
-  .collection-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-xl);
-  }
-
   /* Process / Scrollytelling mobile adjustments */
   .scroll-panel .panel-content h1 {
     font-size: var(--text-4xl);
@@ -995,8 +1216,7 @@ p {
     justify-content: center;
   }
 
-  /* Hero */
-  .hero-cta {
+  .scroll-panel .hero-cta {
     flex-direction: column;
     align-items: center;
   }

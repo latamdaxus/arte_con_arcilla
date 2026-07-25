@@ -159,3 +159,157 @@ tl.to('#panelEsmaltado', {
   ease: 'power1.inOut', 
   duration: 0.05 
 }, 0.88);
+
+
+// ============================================
+// CARRUSEL CINEMATOGRÁFICO HORIZONTAL
+// ============================================
+
+(function initCollectionCarousel() {
+  const isMobile = () => window.innerWidth <= 768;
+
+  const track       = document.getElementById('collectionCarouselTrack');
+  const cards       = Array.from(document.querySelectorAll('.collection-card'));
+  const numEl       = document.getElementById('active-card-num');
+  const progressBar = document.getElementById('collection-progressbar-fill');
+  const cardNameEl  = document.getElementById('collection-card-name');
+
+  if (!track || cards.length === 0) return;
+
+  const CARD_NAMES = cards.map(c => c.dataset.name);
+  const CARD_COUNT = cards.length;
+
+  // ---- Estado inicial de profundidad de campo ----
+  // La primera tarjeta empieza como "activa" (en el centro).
+  // El resto empieza atenuado y borroso.
+  gsap.set(cards[0], { scale: 1.05, opacity: 1, filter: 'blur(0px)' });
+  cards.slice(1).forEach(c => {
+    gsap.set(c, { scale: 0.82, opacity: 0.35, filter: 'blur(5px)' });
+  });
+
+  let scrollTriggerInstance = null;
+
+  function buildCarousel() {
+    if (isMobile()) {
+      // En mobile limpiamos cualquier instancia y no hacemos nada más
+      if (scrollTriggerInstance) {
+        scrollTriggerInstance.kill();
+        scrollTriggerInstance = null;
+      }
+      gsap.set(track, { x: 0 });
+      cards.forEach(c => gsap.set(c, { scale: 1, opacity: 1, filter: 'blur(0px)' }));
+      return;
+    }
+
+    // --- Cálculo de posiciones de centrado ---
+    // El centro de la zona de carrusel (excluyendo el sidebar)
+    const container     = document.querySelector('.collection-carousel-container');
+    const containerRect = container.getBoundingClientRect();
+    const containerCenterX = containerRect.left + containerRect.width / 2;
+
+    // Para cada tarjeta: cuánto hay que mover el track en X para que esa tarjeta quede centrada
+    const cardOffsets = cards.map(card => {
+      const rect = card.getBoundingClientRect();
+      const cardCenterX = rect.left + rect.width / 2;
+      // Offset actual del track (si ya tiene transform, lo sumamos)
+      const currentX = gsap.getProperty(track, 'x') || 0;
+      return containerCenterX - cardCenterX + Number(currentX);
+    });
+
+    // Recalcular sin transform activo
+    gsap.set(track, { x: 0 });
+    const freshOffsets = cards.map(card => {
+      const rect = card.getBoundingClientRect();
+      const cardCenterX = rect.left + rect.width / 2;
+      return containerCenterX - cardCenterX;
+    });
+
+    const firstX = freshOffsets[0];  // posición inicial (tarjeta 1 centrada)
+    const lastX  = freshOffsets[CARD_COUNT - 1];  // posición final (última tarjeta centrada)
+
+    // Mover el track al estado inicial
+    gsap.set(track, { x: firstX });
+
+    // Limpiar instancia anterior si existe
+    if (scrollTriggerInstance) {
+      scrollTriggerInstance.kill();
+    }
+
+    // --- ScrollTrigger principal del carrusel ---
+    scrollTriggerInstance = ScrollTrigger.create({
+      trigger:  '#coleccion',
+      start:    'top top',
+      end:      'bottom bottom',
+      pin:      '.collection-sticky-container',
+      pinSpacing: false,
+      scrub:    1.2,
+      onUpdate: (self) => {
+        const progress = self.progress; // 0 → 1
+
+        // Posición X del track: interpola desde firstX hasta lastX
+        const currentX = gsap.utils.interpolate(firstX, lastX, progress);
+        gsap.set(track, { x: currentX });
+
+        // ── Profundidad de campo continua ──
+        const containerRectNow = container.getBoundingClientRect();
+        const centerNow        = containerRectNow.left + containerRectNow.width / 2;
+
+        let closestDist = Infinity;
+        let closestIdx  = 0;
+
+        cards.forEach((card, i) => {
+          const rect      = card.getBoundingClientRect();
+          const cardCX    = rect.left + rect.width / 2;
+          const dist      = Math.abs(cardCX - centerNow);
+          const maxDist   = containerRectNow.width * 0.7; // radio de influencia
+          const t         = Math.min(dist / maxDist, 1);  // 0 = centro, 1 = lejos
+
+          const scale   = gsap.utils.interpolate(1.05, 0.82, t);
+          const opacity = gsap.utils.interpolate(1,    0.32,  t);
+          const blur    = gsap.utils.interpolate(0,    6,     t);
+
+          gsap.set(card, {
+            scale,
+            opacity,
+            filter: `blur(${blur}px)`,
+          });
+
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestIdx  = i;
+          }
+        });
+
+        // ── Contador y barra de progreso ──
+        const cardNum = String(closestIdx + 1).padStart(2, '0');
+        if (numEl && numEl.textContent !== cardNum) {
+          numEl.textContent = cardNum;
+        }
+        if (cardNameEl && cardNameEl.textContent !== CARD_NAMES[closestIdx]) {
+          cardNameEl.textContent = CARD_NAMES[closestIdx];
+        }
+        if (progressBar) {
+          // Barra va del 25% (1/4) al 100% (4/4) de manera continua
+          const barWidth = ((closestIdx + 1) / CARD_COUNT) * 100;
+          progressBar.style.width = barWidth + '%';
+        }
+      }
+    });
+  }
+
+  // Construir al cargar
+  // Esperar un microtask para que el DOM esté pintado y los getBoundingClientRect() sean correctos
+  requestAnimationFrame(() => {
+    requestAnimationFrame(buildCarousel);
+  });
+
+  // Reconstruir en resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+      buildCarousel();
+    }, 200);
+  });
+})();
