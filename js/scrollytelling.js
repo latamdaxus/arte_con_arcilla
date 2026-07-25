@@ -10,27 +10,30 @@ const frameSequence = { frame: 0 };
 
 const pad = (num, size) => ('000' + num).slice(-size);
 
-// Cargar primer frame inmediatamente
-const firstImg = new Image();
-firstImg.src = `assets/fames/principal-frames/p_001.webp`;
-images[0] = firstImg;
-firstImg.onload = () => {
-  drawFrame(0);
-};
+// Descarga en orden y con concurrencia limitada. Pedir los 193 frames a la vez
+// agota el límite de conexiones por host de HTTP/1.1 (6), dejando en cola
+// indefinidamente cualquier imagen posterior — incluidas las secuencias de los
+// puentes animados, que se quedaban sin dibujar.
+(function loadPrincipalFrames() {
+  const CONCURRENCY = 6;
+  let next = 0;
 
-// Cargar el resto de frames en segundo plano
-for (let i = 1; i <= frameCount; i++) {
-  if (i === 1) continue;
-  const img = new Image();
-  img.src = `assets/fames/principal-frames/p_${pad(i, 3)}.webp`;
-  img.onload = () => {
-    const currentFrame = Math.floor(frameSequence.frame);
-    if (currentFrame === i - 1) {
-      drawFrame(currentFrame);
-    }
+  const startOne = () => {
+    if (next >= frameCount) return;
+    const i = next++;
+    const img = new Image();
+    images[i] = img;
+    const onSettled = () => {
+      if (Math.floor(frameSequence.frame) === i) drawFrame(i);
+      startOne();
+    };
+    img.onload = onSettled;
+    img.onerror = onSettled;
+    img.src = `assets/fames/principal-frames/p_${pad(i + 1, 3)}.webp`;
   };
-  images[i - 1] = img;
-}
+
+  for (let k = 0; k < CONCURRENCY; k++) startOne();
+})();
 
 // Dibujar frame en canvas con equivalencia a object-fit: cover
 function drawImageProp(ctx, img, x, y, w, h, offsetX = 0.5, offsetY = 0.5) {
@@ -312,4 +315,293 @@ tl.to('#panelEsmaltado', {
       buildCarousel();
     }, 200);
   });
+})();
+
+
+// ============================================
+// PUENTES ANIMADOS: VAN GOGH Y TOTORO
+// ============================================
+// Dos secuencias de sprites (canvas, fondo transparente) que sirven de
+// transición entre secciones: Van Gogh cierra el "scrollytelling" y
+// aterriza sobre la primera tarjeta de la colección; Totoro despega de
+// la última tarjeta de la colección y aterriza en el bloque de contacto.
+(function initFrameBridges() {
+  const isMobile = () => window.innerWidth <= 768;
+  if (isMobile()) return;
+
+  const BASE = 640; // resolución base (px) de los canvas, cuadrados
+  const pad = (n) => ('000' + n).slice(-3);
+
+  function setupCanvas(canvas) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = BASE * dpr;
+    canvas.height = BASE * dpr;
+    canvas.style.width = BASE + 'px';
+    canvas.style.height = BASE + 'px';
+    gsap.set(canvas, { xPercent: -50, yPercent: -50, transformOrigin: 'center center', autoAlpha: 0 });
+  }
+
+  // Secuencia de sprites con redibujado diferido: si el frame pedido aún no
+  // ha terminado de descargar, se vuelve a dibujar en cuanto cargue. Sin esto
+  // el canvas queda en blanco al entrar por primera vez, porque el scroll ya
+  // dejó de emitir eventos cuando las imágenes acabaron de llegar.
+  function createSequence(canvas, path, prefix, count) {
+    const ctx = canvas.getContext('2d');
+    const images = [];
+    let currentIndex = 0;
+    let drawnIndex = -1;
+    let loaded = false;
+
+    const isReady = (i) => {
+      const img = images[i];
+      return !!img && img.complete && img.naturalWidth > 0;
+    };
+
+    // Si el frame exacto aún no llegó, usa el más cercano ya descargado: así la
+    // animación se degrada (va "a saltos") en vez de dejar el canvas en blanco.
+    function pickDrawable(index) {
+      if (isReady(index)) return index;
+      for (let d = 1; d < count; d++) {
+        if (index - d >= 0 && isReady(index - d)) return index - d;
+        if (index + d < count && isReady(index + d)) return index + d;
+      }
+      return -1;
+    }
+
+    function paint(index) {
+      const i = pickDrawable(index);
+      if (i < 0) return;
+      drawnIndex = i;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(images[i], 0, 0, canvas.width, canvas.height);
+    }
+
+    return {
+      // Descarga en orden con concurrencia limitada: pedir los ~192 frames de
+      // golpe saturaba la conexión y los servidores los rechazaban
+      // (ERR_CONNECTION_RESET), dejando el canvas vacío.
+      load() {
+        if (loaded) return;
+        loaded = true;
+        const CONCURRENCY = 6;
+        let next = 0;
+
+        const startOne = () => {
+          if (next >= count) return;
+          const i = next++;
+          const img = new Image();
+          images[i] = img;
+          const onSettled = () => {
+            // Redibuja si este frame recién llegado se acerca más al objetivo
+            // que el que está actualmente en pantalla.
+            const better = drawnIndex < 0 ||
+              Math.abs(i - currentIndex) < Math.abs(drawnIndex - currentIndex);
+            if (better) paint(currentIndex);
+            startOne();
+          };
+          img.onload = onSettled;
+          img.onerror = onSettled;
+          img.src = `${path}/${prefix}_${pad(i + 1)}.webp`;
+        };
+
+        for (let k = 0; k < CONCURRENCY; k++) startOne();
+      },
+      draw(index) {
+        currentIndex = index;
+        paint(index);
+      }
+    };
+  }
+
+  // Rect (centro + tamaño) de la tarjeta activa del carrusel de colección,
+  // asumiendo que su contenedor sticky ya está "pegado" (top: 0). Es válido
+  // en cualquier momento del scroll porque el ancho/alto de la tarjeta no
+  // dependen de si el contenedor está o no efectivamente pegado.
+  function getCollectionCardRect() {
+    const container = document.querySelector('.collection-carousel-container');
+    const sampleCard = document.querySelector('.collection-card-image');
+    if (!container || !sampleCard) return null;
+    const containerRect = container.getBoundingClientRect();
+    const cs = getComputedStyle(sampleCard);
+    return {
+      width: parseFloat(cs.width),
+      height: parseFloat(cs.height),
+      centerX: containerRect.left + containerRect.width / 2,
+      centerY: window.innerHeight / 2
+    };
+  }
+
+  // ---- VAN GOGH: del cierre del scrollytelling a la 1ª tarjeta ----
+  (function initVanGoghBridge() {
+    const bridge = document.getElementById('vanGoghBridge');
+    const canvas = document.getElementById('vanGoghCanvas');
+    if (!bridge || !canvas) return;
+
+    const FRAME_COUNT = 192;
+    setupCanvas(canvas);
+    const seq = createSequence(canvas, 'assets/fames/van-gogh-frames_sin_fondo', 'v', FRAME_COUNT);
+
+    // Precarga anticipada, cerca del final de la secuencia principal
+    ScrollTrigger.create({ trigger: '#scrollytelling', start: '35% top', once: true, onEnter: () => seq.load() });
+
+    let trigger = null;
+
+    function build() {
+      if (isMobile()) return;
+      gsap.set(canvas, { autoAlpha: 0 });
+      if (trigger) trigger.kill();
+
+      const target = getCollectionCardRect();
+      if (!target) return;
+
+      const finalScale = Math.min(target.width, target.height) * 0.85 / BASE;
+      const popScale = finalScale * 1.4;
+      const popX = window.innerWidth / 2;
+      const popY = window.innerHeight * 0.44;
+
+      trigger = ScrollTrigger.create({
+        // Arranca cuando la secuencia principal ya llegó a su último frame (y el
+        // paso "Esmaltado" se desvaneció) y termina justo cuando arranca la
+        // colección, para que el aterrizaje coincida con la aparición real de la
+        // primera tarjeta.
+        trigger: '#scrollytelling',
+        start: 'bottom bottom',
+        endTrigger: '#coleccion',
+        end: 'top top',
+        scrub: 1,
+        onUpdate: (self) => {
+          seq.load();
+          const p = self.progress;
+          let x, y, scale, opacity;
+
+          if (p < 0.22) {
+            // Fase 1: aparece grande, centrada en pantalla
+            const t = p / 0.22;
+            opacity = t;
+            scale = gsap.utils.interpolate(popScale * 0.8, popScale, t);
+            x = popX;
+            y = popY;
+          } else {
+            // Fase 2: se desplaza y se ajusta al tamaño de la tarjeta
+            const eased = gsap.parseEase('power2.inOut')((p - 0.22) / 0.78);
+            opacity = 1;
+            scale = gsap.utils.interpolate(popScale, finalScale, eased);
+            x = gsap.utils.interpolate(popX, target.centerX, eased);
+            y = gsap.utils.interpolate(popY, target.centerY, eased);
+          }
+
+          if (p >= 0.995) opacity = 0; // revela la tarjeta real de fondo
+
+          gsap.set(canvas, { x, y, scale, autoAlpha: opacity });
+          seq.draw(Math.min(FRAME_COUNT - 1, Math.floor(p * FRAME_COUNT)));
+        },
+        onLeaveBack: () => gsap.set(canvas, { autoAlpha: 0 })
+      });
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(build));
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (isMobile()) {
+          if (trigger) { trigger.kill(); trigger = null; }
+          gsap.set(canvas, { autoAlpha: 0 });
+          return;
+        }
+        ScrollTrigger.refresh();
+        build();
+      }, 200);
+    });
+  })();
+
+  // ---- TOTORO: del cierre del carrusel de colección al bloque de contacto ----
+  (function initTotoroBridge() {
+    const bridge = document.getElementById('totoroBridge');
+    const canvas = document.getElementById('totoroCanvas');
+    const visual = document.getElementById('contactVisual');
+    if (!bridge || !canvas || !visual) return;
+
+    const FRAME_COUNT = 192;
+    setupCanvas(canvas);
+    const seq = createSequence(canvas, 'assets/fames/totoro-frames_sin_fondo', 't', FRAME_COUNT);
+
+    // Precarga anticipada, cerca del final del recorrido horizontal
+    ScrollTrigger.create({ trigger: '#vanGoghBridge', start: 'top top', once: true, onEnter: () => seq.load() });
+
+    // Fija el tamaño real del slot visual de contacto (tarjeta +30%) y devuelve
+    // su rect. El centro vertical se asume en mitad de pantalla porque el
+    // contenido de #contacto va centrado en su contenedor sticky de 100vh.
+    function sizeAndGetVisualRect(cardRect) {
+      const cardBase = Math.min(cardRect.width, cardRect.height);
+      const finalSize = Math.min(cardBase * 1.3, window.innerWidth * 0.44, window.innerHeight * 0.78);
+      visual.style.width = finalSize + 'px';
+      visual.style.height = finalSize + 'px';
+      const rect = visual.getBoundingClientRect();
+      return {
+        width: finalSize,
+        height: finalSize,
+        centerX: rect.left + finalSize / 2,
+        centerY: window.innerHeight / 2
+      };
+    }
+
+    let trigger = null;
+
+    function build() {
+      if (isMobile()) return;
+      gsap.set(canvas, { autoAlpha: 0 });
+      if (trigger) trigger.kill();
+
+      const cardRect = getCollectionCardRect();
+      if (!cardRect) return;
+      const end = sizeAndGetVisualRect(cardRect);
+      const startScale = Math.min(cardRect.width, cardRect.height) / BASE;
+      const endScale = Math.min(end.width, end.height) / BASE;
+
+      trigger = ScrollTrigger.create({
+        // Arranca cuando el recorrido horizontal ya terminó (última tarjeta
+        // centrada) y acaba cuando la sección de contacto queda en su sitio.
+        trigger: '#coleccion',
+        start: 'bottom bottom',
+        endTrigger: '#contacto',
+        end: 'top top',
+        scrub: 1,
+        onUpdate: (self) => {
+          seq.load();
+          const p = self.progress;
+          const eased = gsap.parseEase('power1.inOut')(p);
+
+          const x = gsap.utils.interpolate(cardRect.centerX, end.centerX, eased);
+          const y = gsap.utils.interpolate(cardRect.centerY, end.centerY, eased);
+          const scale = gsap.utils.interpolate(startScale, endScale, eased);
+          let opacity = gsap.utils.clamp(0, 1, p / 0.05);
+          if (p >= 0.995) opacity = 0; // revela la imagen estática del bloque de contacto
+
+          gsap.set(canvas, { x, y, scale, autoAlpha: opacity });
+          seq.draw(Math.min(FRAME_COUNT - 1, Math.floor(p * FRAME_COUNT)));
+        },
+        onLeaveBack: () => gsap.set(canvas, { autoAlpha: 0 })
+      });
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(build));
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (isMobile()) {
+          if (trigger) { trigger.kill(); trigger = null; }
+          gsap.set(canvas, { autoAlpha: 0 });
+          visual.style.width = '';
+          visual.style.height = '';
+          return;
+        }
+        ScrollTrigger.refresh();
+        build();
+      }, 200);
+    });
+  })();
 })();
