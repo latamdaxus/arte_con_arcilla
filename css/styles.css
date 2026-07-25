@@ -744,6 +744,7 @@ p {
 /* Carousel Container */
 .collection-carousel-container {
   flex: 1;
+  min-width: 0;
   overflow: visible;
   display: flex;
   align-items: center;
