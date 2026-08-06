@@ -613,6 +613,15 @@ p {
   background-color: var(--carbon);
 }
 
+/* En celular las secciones son de alto automático y no dejan recorrido entre
+   una y otra (en desktop lo aporta el tramo final de las secciones "pinneadas"),
+   así que el puente tiene que aportarlo él mismo. */
+@media (max-width: 768px) {
+  .frame-bridge {
+    height: 100vh;
+  }
+}
+
 .sprite-canvas {
   position: fixed;
   top: 0;
@@ -624,15 +633,6 @@ p {
   will-change: transform, opacity;
 }
 
-@media (max-width: 768px) {
-  .frame-bridge {
-    display: none;
-  }
-
-  .sprite-canvas {
-    display: none !important;
-  }
-}
 
 /* --- Colección Cinematográfica --- */
 .collection-scrollytelling {
@@ -1072,8 +1072,10 @@ p {
     text-align: center;
   }
 
+  /* Se mantiene visible: es el destino donde aterriza el sprite de Totoro. */
   .contact-visual {
-    display: none;
+    width: min(60vw, 260px);
+    margin: 0 auto var(--space-lg);
   }
 
   .contact-content {

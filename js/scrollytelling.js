@@ -4,9 +4,70 @@ gsap.registerPlugin(ScrollTrigger);
 const canvas = document.getElementById('scrollCanvas');
 const ctx = canvas.getContext('2d');
 
-const frameCount = 193;
+// El barrido con scroll va de p_001 a p_192: p_192 es la toma con el plato
+// sobre la mesa, y es contra ella que está calibrado el despegue del sprite.
+// p_193 es la misma escena con la mesa vacía y queda FUERA del barrido: se
+// muestra recién en el instante del despegue (ver "mesa vacía" más abajo), para
+// que el plato parezca levantarse. Mide 1672x941 en vez de 1280x720, pero
+// conserva la proporción, así que se dibuja por el mismo camino.
+const frameCount = 192;
+const EMPTY_TABLE_INDEX = frameCount; // p_193
+const TOTAL_FRAMES = frameCount + 1;
 const images = [];
 const frameSequence = { frame: 0 };
+
+// Cuando es true el fondo reposa en p_193 (mesa vacía) en vez de seguir el
+// barrido. Lo conmuta el ScrollTrigger del despegue, en ambos sentidos.
+let tableEmpty = false;
+
+// --- Geometría compartida de la escena ---
+// Todo lo que tenga que calzar con el fondo se expresa en "coordenadas de
+// frame" (el sistema de 1280x720 de los WebP) y se proyecta a pantalla con
+// fitFrame(). Así el fondo y los sprites usan exactamente la misma
+// transformación y calzan en cualquier viewport.
+const FRAME_W = 1280;
+const FRAME_H = 720;
+
+// Dónde cae el canvas completo del sprite (720x720) dentro del frame, y qué
+// parte de ese cuadrado ocupa el plato pintado. Calibrado por correlación
+// cruzada de v_001 contra p_192 (escala 0.875).
+const SPRITE_IN_FRAME = { x: 345.88, y: 54.25, size: 630 };
+const PLATE_IN_FRAME = { x: 408, y: 112, w: 520, h: 508 };
+
+// Escala tipo "cover", pero nunca tanto como para recortar el plato. En una
+// pantalla vertical el cover puro se comería medio plato (y el sprite no
+// tendría contra qué calzar), así que ahí se limita la escala y quedan bandas
+// del color de la sección. Nunca deforma: la proporción del frame se respeta
+// siempre, que es lo que producía el óvalo aplastado en celular.
+function fitFrame(vw, vh) {
+  const cover = Math.max(vw / FRAME_W, vh / FRAME_H);
+  const contain = Math.min(vw / FRAME_W, vh / FRAME_H);
+
+  // Semiejes del plato medidos desde el centro del frame (el recorte del cover
+  // es centrado), con un poco de aire alrededor.
+  const AIR = 1.04;
+  const halfW = Math.max(Math.abs(PLATE_IN_FRAME.x - FRAME_W / 2),
+    Math.abs(PLATE_IN_FRAME.x + PLATE_IN_FRAME.w - FRAME_W / 2)) * AIR;
+  const halfH = Math.max(Math.abs(PLATE_IN_FRAME.y - FRAME_H / 2),
+    Math.abs(PLATE_IN_FRAME.y + PLATE_IN_FRAME.h - FRAME_H / 2)) * AIR;
+  const keepPlate = Math.min(vw / (2 * halfW), vh / (2 * halfH));
+
+  const scale = Math.min(cover, Math.max(contain, keepPlate));
+  const dw = FRAME_W * scale;
+  const dh = FRAME_H * scale;
+  return { scale, dw, dh, dx: (vw - dw) / 2, dy: (vh - dh) / 2 };
+}
+
+// Proyecta un rectángulo en coordenadas de frame a coordenadas de pantalla.
+function frameRectToScreen(rect) {
+  const f = fitFrame(window.innerWidth, window.innerHeight);
+  const size = (rect.size !== undefined ? rect.size : rect.w) * f.scale;
+  return {
+    centerX: f.dx + (rect.x + (rect.size !== undefined ? rect.size : rect.w) / 2) * f.scale,
+    centerY: f.dy + (rect.y + (rect.size !== undefined ? rect.size : rect.h) / 2) * f.scale,
+    size
+  };
+}
 
 const pad = (num, size) => ('000' + num).slice(-size);
 
@@ -19,12 +80,12 @@ const pad = (num, size) => ('000' + num).slice(-size);
   let next = 0;
 
   const startOne = () => {
-    if (next >= frameCount) return;
+    if (next >= TOTAL_FRAMES) return;
     const i = next++;
     const img = new Image();
     images[i] = img;
     const onSettled = () => {
-      if (Math.floor(frameSequence.frame) === i) drawFrame(i);
+      if (sceneFrameIndex() === i) drawFrame(i);
       startOne();
     };
     img.onload = onSettled;
@@ -35,43 +96,33 @@ const pad = (num, size) => ('000' + num).slice(-size);
   for (let k = 0; k < CONCURRENCY; k++) startOne();
 })();
 
-// Dibujar frame en canvas con equivalencia a object-fit: cover
-function drawImageProp(ctx, img, x, y, w, h, offsetX = 0.5, offsetY = 0.5) {
-  const iw = img.naturalWidth || img.width;
-  const ih = img.naturalHeight || img.height;
-  
-  if (iw === 0 || ih === 0) return;
-
-  const r = Math.min(w / iw, h / ih);
-  let nw = iw * r;
-  let nh = ih * r;
-  
-  if (nw < w) nw = iw * (w / iw);
-  if (nh < h) nh = ih * (h / ih);
-  
-  const cw = iw / (nw / w);
-  const ch = ih / (nh / h);
-  
-  const cx = (iw - cw) * offsetX;
-  const cy = (ih - ch) * offsetY;
-  
-  ctx.drawImage(img, cx, cy, cw, ch, x, y, w, h);
-}
-
 function drawFrame(index) {
   const img = images[index];
-  if (img && img.complete) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawImageProp(ctx, img, 0, 0, canvas.width, canvas.height);
-  }
+  // Si el frame todavía no llegó no se dibuja nada: queda en pantalla el
+  // anterior, que es una degradación mejor que un canvas en blanco. El cargador
+  // vuelve a pedir el dibujo en cuanto la imagen termina de descargar.
+  if (!img || !img.complete || !img.naturalWidth) return;
+  const f = fitFrame(canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // El frame se dibuja completo y proporcional; lo que se salga del canvas lo
+  // recorta el propio canvas.
+  ctx.drawImage(img, f.dx, f.dy, f.dw, f.dh);
+}
+
+// Qué frame le toca al fondo ahora mismo.
+function sceneFrameIndex() {
+  return tableEmpty ? EMPTY_TABLE_INDEX : Math.floor(frameSequence.frame);
+}
+
+function renderScene() {
+  drawFrame(sceneFrameIndex());
 }
 
 // Ajustar dimensiones del canvas
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  const currentFrame = Math.floor(frameSequence.frame);
-  drawFrame(currentFrame);
+  renderScene();
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -93,10 +144,32 @@ gsap.to(frameSequence, {
     end: "bottom bottom",
     scrub: 0.5 // Agrega inercia suave al movimiento
   },
-  onUpdate: () => {
-    drawFrame(Math.floor(frameSequence.frame));
-  }
+  onUpdate: renderScene
 });
+
+// 1b. Mesa vacía: el fondo sostiene p_192 durante todo el barrido y recién pasa
+// a p_193 en el instante del despegue del sprite —el mismo punto donde arranca
+// el vuelo de Van Gogh, "bottom bottom" de #scrollytelling—, de modo que el
+// plato parezca levantarse de la mesa. Si no se atara a ese punto, la mesa se
+// vaciaría casi una pantalla antes y quedaría un tramo con la mesa vacía y nada
+// volando. Al scrollear hacia arriba vuelve a p_192.
+ScrollTrigger.create({
+  trigger: '#scrollytelling',
+  start: 'bottom bottom',
+  end: 'bottom top', // mientras el taller sigue a la vista
+  onEnter: () => setTableEmpty(true),
+  onEnterBack: () => setTableEmpty(true),
+  onLeaveBack: () => setTableEmpty(false),
+  // Deja el estado correcto si la página carga (o se redimensiona) ya pasada
+  // la marca, cuando onEnter no llega a dispararse.
+  onRefresh: (self) => setTableEmpty(window.scrollY >= self.start)
+});
+
+function setTableEmpty(value) {
+  if (tableEmpty === value) return;
+  tableEmpty = value;
+  renderScene();
+}
 
 // 2. Control de visibilidad de los paneles de texto
 const tl = gsap.timeline({
@@ -327,7 +400,6 @@ tl.to('#panelEsmaltado', {
 // la última tarjeta de la colección y aterriza en el bloque de contacto.
 (function initFrameBridges() {
   const isMobile = () => window.innerWidth <= 768;
-  if (isMobile()) return;
 
   const BASE = 640; // resolución base (px) de los canvas, cuadrados
   const pad = (n) => ('000' + n).slice(-3);
@@ -413,20 +485,44 @@ tl.to('#panelEsmaltado', {
     };
   }
 
-  // Rect (centro + tamaño) de la tarjeta activa del carrusel de colección,
-  // asumiendo que su contenedor sticky ya está "pegado" (top: 0). Es válido
-  // en cualquier momento del scroll porque el ancho/alto de la tarjeta no
-  // dependen de si el contenedor está o no efectivamente pegado.
-  function getCollectionCardRect() {
-    const container = document.querySelector('.collection-carousel-container');
-    const sampleCard = document.querySelector('.collection-card-image');
-    if (!container || !sampleCard) return null;
-    const containerRect = container.getBoundingClientRect();
-    const cs = getComputedStyle(sampleCard);
+  // Posición en pantalla que tendrá un elemento de flujo normal cuando el
+  // scroll llegue a scrollY. Se usa en celular, donde la colección y el
+  // contacto no van "pinneados" y por tanto sí se desplazan con la página.
+  function screenRectAtScroll(el, scrollY) {
+    const r = el.getBoundingClientRect();
     return {
-      width: parseFloat(cs.width),
-      height: parseFloat(cs.height),
-      centerX: containerRect.left + containerRect.width / 2,
+      width: r.width,
+      height: r.height,
+      centerX: r.left + r.width / 2,
+      centerY: r.top + window.scrollY + r.height / 2 - scrollY
+    };
+  }
+
+  function cardBox() {
+    const card = document.querySelector('.collection-card .collection-card-image');
+    if (!card) return null;
+    const cs = getComputedStyle(card);
+    return { el: card, width: parseFloat(cs.width), height: parseFloat(cs.height) };
+  }
+
+  // Rect de la tarjeta del carrusel donde aterriza/despega un sprite.
+  // En desktop el contenedor va "pinneado" y la tarjeta activa queda centrada
+  // en pantalla, así que el centro es fijo. En celular es una tira horizontal
+  // normal, así que hay que proyectar dónde estará en el scroll indicado.
+  function collectionCardRect(scrollY) {
+    const container = document.querySelector('.collection-carousel-container');
+    const box = cardBox();
+    if (!container || !box) return null;
+
+    if (isMobile()) {
+      const r = screenRectAtScroll(box.el, scrollY);
+      return { width: box.width, height: box.height, centerX: r.centerX, centerY: r.centerY };
+    }
+    const cr = container.getBoundingClientRect();
+    return {
+      width: box.width,
+      height: box.height,
+      centerX: cr.left + cr.width / 2,
       centerY: window.innerHeight / 2
     };
   }
@@ -447,50 +543,53 @@ tl.to('#panelEsmaltado', {
     let trigger = null;
 
     function build() {
-      if (isMobile()) return;
       gsap.set(canvas, { autoAlpha: 0 });
       if (trigger) trigger.kill();
 
-      const target = getCollectionCardRect();
-      if (!target) return;
-
-      const finalScale = Math.min(target.width, target.height) * 0.85 / BASE;
-      const popScale = finalScale * 1.4;
-      const popX = window.innerWidth / 2;
-      const popY = window.innerHeight * 0.44;
+      const mob = isMobile();
 
       trigger = ScrollTrigger.create({
         // Arranca cuando la secuencia principal ya llegó a su último frame (y el
-        // paso "Esmaltado" se desvaneció) y termina justo cuando arranca la
-        // colección, para que el aterrizaje coincida con la aparición real de la
-        // primera tarjeta.
+        // paso "Esmaltado" se desvaneció). En desktop termina justo cuando
+        // arranca la colección (la tarjeta ya está centrada por el pin); en
+        // celular, cuando la primera tarjeta queda centrada en pantalla.
         trigger: '#scrollytelling',
-        start: () => `bottom bottom+=${window.innerHeight / 48}`,
-        endTrigger: '#coleccion',
-        end: 'top top',
+        start: 'bottom bottom',
+        endTrigger: mob ? '.collection-card .collection-card-image' : '#coleccion',
+        end: mob ? 'center center' : 'top top',
         scrub: 1,
         onUpdate: (self) => {
           seq.load();
           const p = self.progress;
-          let x, y, scale, opacity;
 
+          const target = collectionCardRect(self.end);
+          if (!target) return;
+
+          // Punto de partida: el sprite calcado sobre el plato del fondo. Se
+          // deriva de la misma proyección que usa el canvas del taller, así que
+          // coincide en cualquier viewport sin recalibrar.
+          const from = frameRectToScreen(SPRITE_IN_FRAME);
+          const fromScale = from.size / BASE;
+          const toScale = Math.min(target.width, target.height) * 0.85 / BASE;
+
+          let x, y, scale;
           if (p < 0.22) {
-            // Fase 1: aparece grande, centrada en pantalla
-            const t = p / 0.22;
-            opacity = 1;
-            scale = gsap.utils.interpolate(popScale * 0.8, popScale, t);
-            x = popX;
-            y = popY;
+            // Fase 1: despega creciendo un poco, sin moverse del plato.
+            const t = gsap.parseEase('power1.out')(p / 0.22);
+            scale = gsap.utils.interpolate(fromScale, fromScale * 1.18, t);
+            x = from.centerX;
+            y = gsap.utils.interpolate(from.centerY, from.centerY - from.size * 0.04, t);
           } else {
-            // Fase 2: se desplaza y se ajusta al tamaño de la tarjeta
-            const eased = gsap.parseEase('power2.inOut')((p - 0.22) / 0.78);
-            opacity = 1;
-            scale = gsap.utils.interpolate(popScale, finalScale, eased);
-            x = gsap.utils.interpolate(popX, target.centerX, eased);
-            y = gsap.utils.interpolate(popY, target.centerY, eased);
+            // Fase 2: viaja y se ajusta al tamaño de la tarjeta.
+            const t = gsap.parseEase('power2.inOut')((p - 0.22) / 0.78);
+            scale = gsap.utils.interpolate(fromScale * 1.18, toScale, t);
+            x = gsap.utils.interpolate(from.centerX, target.centerX, t);
+            y = gsap.utils.interpolate(from.centerY - from.size * 0.04, target.centerY, t);
           }
 
-          if (p >= 0.995) opacity = 0; // revela la tarjeta real de fondo
+          // Opaco desde el primer instante: como arranca calcado sobre el plato,
+          // el relevo es invisible y se lee como continuidad.
+          const opacity = p >= 0.995 ? 0 : 1;
 
           gsap.set(canvas, { x, y, scale, autoAlpha: opacity });
           seq.draw(Math.min(FRAME_COUNT - 1, Math.floor(p * FRAME_COUNT)));
@@ -505,11 +604,6 @@ tl.to('#panelEsmaltado', {
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        if (isMobile()) {
-          if (trigger) { trigger.kill(); trigger = null; }
-          gsap.set(canvas, { autoAlpha: 0 });
-          return;
-        }
         ScrollTrigger.refresh();
         build();
       }, 200);
@@ -530,14 +624,20 @@ tl.to('#panelEsmaltado', {
     // Precarga anticipada, cerca del final del recorrido horizontal
     ScrollTrigger.create({ trigger: '#vanGoghBridge', start: 'top top', once: true, onEnter: () => seq.load() });
 
-    // Fija el tamaño real del slot visual de contacto (tarjeta +30%) y devuelve
-    // su rect. El centro vertical se asume en mitad de pantalla porque el
-    // contenido de #contacto va centrado en su contenedor sticky de 100vh.
-    function sizeAndGetVisualRect(cardRect) {
+    // Fija el tamaño del slot visual de contacto (tarjeta +30%) y devuelve su
+    // rect. En desktop el contenido va centrado en un contenedor sticky de
+    // 100vh, así que el centro vertical es media pantalla; en celular el bloque
+    // es de flujo normal y hay que proyectarlo al scroll de llegada.
+    function sizeAndGetVisualRect(cardRect, scrollY) {
       const cardBase = Math.min(cardRect.width, cardRect.height);
       const finalSize = Math.min(cardBase * 1.3, window.innerWidth * 0.44, window.innerHeight * 0.78);
       visual.style.width = finalSize + 'px';
       visual.style.height = finalSize + 'px';
+
+      if (isMobile()) {
+        const r = screenRectAtScroll(visual, scrollY);
+        return { width: finalSize, height: finalSize, centerX: r.centerX, centerY: r.centerY };
+      }
       const rect = visual.getBoundingClientRect();
       return {
         width: finalSize,
@@ -550,21 +650,19 @@ tl.to('#panelEsmaltado', {
     let trigger = null;
 
     function build() {
-      if (isMobile()) return;
       gsap.set(canvas, { autoAlpha: 0 });
       if (trigger) trigger.kill();
 
-      const cardRect = getCollectionCardRect();
-      if (!cardRect) return;
-      const end = sizeAndGetVisualRect(cardRect);
-      const startScale = Math.min(cardRect.width, cardRect.height) / BASE;
-      const endScale = Math.min(end.width, end.height) / BASE;
+      const mob = isMobile();
 
       trigger = ScrollTrigger.create({
-        // Arranca cuando el recorrido horizontal ya terminó (última tarjeta
-        // centrada) y acaba cuando la sección de contacto queda en su sitio.
-        trigger: '#coleccion',
-        start: 'bottom bottom',
+        // Desktop: arranca cuando el recorrido horizontal ya terminó (última
+        // tarjeta centrada). Celular: no hay recorrido horizontal, así que
+        // despega en el mismo punto donde Van Gogh aterriza —la tarjeta
+        // centrada—, evitando que ambos sprites se pisen. Acaba cuando la
+        // sección de contacto queda en su sitio.
+        trigger: mob ? '.collection-card .collection-card-image' : '#coleccion',
+        start: mob ? 'center center' : 'bottom bottom',
         endTrigger: '#contacto',
         end: 'top top',
         scrub: 1,
@@ -573,11 +671,16 @@ tl.to('#panelEsmaltado', {
           const p = self.progress;
           const eased = gsap.parseEase('power1.inOut')(p);
 
-          const x = gsap.utils.interpolate(cardRect.centerX, end.centerX, eased);
-          const y = gsap.utils.interpolate(cardRect.centerY, end.centerY, eased);
-          const scale = gsap.utils.interpolate(startScale, endScale, eased);
-          let opacity = 1;
-          if (p >= 0.995) opacity = 0; // revela la imagen estática del bloque de contacto
+          const from = collectionCardRect(self.start);
+          if (!from) return;
+          const to = sizeAndGetVisualRect(from, self.end);
+          const fromScale = Math.min(from.width, from.height) / BASE;
+          const toScale = Math.min(to.width, to.height) / BASE;
+
+          const x = gsap.utils.interpolate(from.centerX, to.centerX, eased);
+          const y = gsap.utils.interpolate(from.centerY, to.centerY, eased);
+          const scale = gsap.utils.interpolate(fromScale, toScale, eased);
+          const opacity = p >= 0.995 ? 0 : 1; // revela la imagen estática de contacto
 
           gsap.set(canvas, { x, y, scale, autoAlpha: opacity });
           seq.draw(Math.min(FRAME_COUNT - 1, Math.floor(p * FRAME_COUNT)));
@@ -592,13 +695,6 @@ tl.to('#panelEsmaltado', {
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        if (isMobile()) {
-          if (trigger) { trigger.kill(); trigger = null; }
-          gsap.set(canvas, { autoAlpha: 0 });
-          visual.style.width = '';
-          visual.style.height = '';
-          return;
-        }
         ScrollTrigger.refresh();
         build();
       }, 200);
