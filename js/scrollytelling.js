@@ -465,7 +465,7 @@ tl.to('#panelEsmaltado', {
         // colección, para que el aterrizaje coincida con la aparición real de la
         // primera tarjeta.
         trigger: '#scrollytelling',
-        start: 'bottom bottom',
+        start: () => `bottom bottom+=${window.innerHeight / 48}`,
         endTrigger: '#coleccion',
         end: 'top top',
         scrub: 1,
@@ -477,7 +477,7 @@ tl.to('#panelEsmaltado', {
           if (p < 0.22) {
             // Fase 1: aparece grande, centrada en pantalla
             const t = p / 0.22;
-            opacity = t;
+            opacity = 1;
             scale = gsap.utils.interpolate(popScale * 0.8, popScale, t);
             x = popX;
             y = popY;
@@ -576,7 +576,7 @@ tl.to('#panelEsmaltado', {
           const x = gsap.utils.interpolate(cardRect.centerX, end.centerX, eased);
           const y = gsap.utils.interpolate(cardRect.centerY, end.centerY, eased);
           const scale = gsap.utils.interpolate(startScale, endScale, eased);
-          let opacity = gsap.utils.clamp(0, 1, p / 0.05);
+          let opacity = 1;
           if (p >= 0.995) opacity = 0; // revela la imagen estática del bloque de contacto
 
           gsap.set(canvas, { x, y, scale, autoAlpha: opacity });

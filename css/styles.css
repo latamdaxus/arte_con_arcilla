@@ -609,7 +609,7 @@ p {
 /* --- Puentes animados (Van Gogh / Totoro) --- */
 .frame-bridge {
   position: relative;
-  height: 180vh;
+  height: 10vh;
   background-color: var(--carbon);
 }
 
