@@ -1,0 +1,208 @@
+/* ============================================================================
+   SECCIÓN — El taller (scrollytelling del hero)
+   Canvas de la secuencia de frames, velo de contraste y los paneles de texto
+   que aparecen y desaparecen con el scroll.
+   ============================================================================ */
+
+.taller {
+  position: relative;
+  height: 500vh;
+  background-color: var(--carbon);
+}
+
+.taller__lienzo {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+}
+
+#scrollCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.taller__velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(58, 47, 40, 0.4) 0%,
+    rgba(58, 47, 40, 0.55) 50%,
+    rgba(58, 47, 40, 0.75) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* --- Paneles ---
+   Arrancan ocultos; la línea de tiempo de secciones/taller.js los revela. */
+.panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 3;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.panel .panel__contenido {
+  max-width: 800px;
+  text-align: center;
+  color: var(--blanco);
+}
+
+.panel .panel__contenido h1 {
+  color: var(--blanco);
+  margin-bottom: var(--space-lg);
+  font-size: var(--text-5xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.panel .panel__contenido h1 .panel__acento {
+  color: var(--arcilla);
+  font-style: italic;
+}
+
+.panel .panel__contenido p {
+  color: rgba(255, 253, 248, 0.9);
+  font-size: var(--text-xl);
+  margin-bottom: var(--space-2xl);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.panel .panel__acciones {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* --- Tarjeta de vidrio de los pasos del proceso --- */
+.panel__contenido--vidrio {
+  background: rgba(58, 47, 40, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-2xl) var(--space-3xl);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+  max-width: 600px !important;
+  width: 100%;
+}
+
+/* El título del paso es h2 (la jerarquía baja de h1 a h2 sin salto). El tamaño
+   se fija acá para que se vea igual que cuando era h3. */
+.panel__contenido--vidrio h2 {
+  color: var(--blanco);
+  font-size: var(--text-3xl);
+  margin-bottom: var(--space-md);
+}
+
+.panel__contenido--vidrio p {
+  color: rgba(255, 253, 248, 0.9);
+  font-size: var(--text-lg);
+  margin-bottom: 0;
+  line-height: 1.7;
+}
+
+.panel__contenido--vidrio .panel__numero {
+  width: 70px;
+  height: 70px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--terracota), var(--arcilla));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-lg);
+  box-shadow: 0 8px 25px rgba(193, 101, 74, 0.3);
+}
+
+.panel__contenido--vidrio .panel__numero span {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--blanco);
+}
+
+.panel__contenido--vidrio .panel__icono {
+  font-size: 3rem;
+  margin-bottom: var(--space-sm);
+}
+
+/* --- Indicador decorativo de scroll --- */
+.taller__indicador {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: bounce 2s ease infinite;
+}
+
+.taller__indicador span {
+  display: block;
+  width: 24px;
+  height: 40px;
+  border: 2px solid rgba(255, 253, 248, 0.5);
+  border-radius: 12px;
+  position: relative;
+}
+
+.taller__indicador span::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 8px;
+  background-color: rgba(255, 253, 248, 0.7);
+  border-radius: 2px;
+  animation: scrollDot 2s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(10px); }
+}
+
+@keyframes scrollDot {
+  0% { opacity: 1; top: 8px; }
+  100% { opacity: 0; top: 20px; }
+}
+
+/* --- Celular --- */
+@media (max-width: 768px) {
+  .panel .panel__contenido h1 {
+    font-size: var(--text-4xl);
+  }
+
+  .panel .panel__contenido p {
+    font-size: var(--text-base);
+  }
+
+  .panel__contenido--vidrio {
+    padding: var(--space-xl);
+    width: 95%;
+    margin: 0 auto;
+  }
+
+  .panel .panel__acciones {
+    flex-direction: column;
+    align-items: center;
+  }
+}

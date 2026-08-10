@@ -1,0 +1,56 @@
+/* ============================================================================
+   COMPONENTE — Botones
+   Independiente de dónde se use: aparece en el hero, en el sidebar de colección
+   y en contacto.
+   ============================================================================ */
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-2xl);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-base);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  letter-spacing: 0.5px;
+}
+
+.boton--primario {
+  background-color: var(--terracota);
+  color: var(--blanco);
+}
+
+.boton--primario:hover {
+  background-color: var(--terracota-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(193, 101, 74, 0.3);
+}
+
+.boton--contorno {
+  border: 2px solid var(--terracota);
+  color: var(--terracota);
+  background: transparent;
+}
+
+.boton--contorno:hover {
+  background-color: var(--terracota);
+  color: var(--blanco);
+  transform: translateY(-2px);
+}
+
+.boton--whatsapp {
+  background-color: #25D366;
+  color: #fff;
+  font-size: var(--text-lg);
+  padding: var(--space-lg) var(--space-3xl);
+  border-radius: var(--radius-lg);
+}
+
+.boton--whatsapp:hover {
+  background-color: #1EBE5A;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3);
+}

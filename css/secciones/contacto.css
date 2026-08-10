@@ -1,0 +1,123 @@
+/* ============================================================================
+   SECCIÓN — Contacto
+   Dos columnas: el slot donde aterriza el sprite de Totoro a la izquierda y el
+   texto con los CTA a la derecha.
+   ============================================================================ */
+
+.contacto {
+  position: relative;
+  height: 100vh;
+  background-color: var(--crema);
+}
+
+.contacto__fijo {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.contacto__fijo .contenedor {
+  width: 100%;
+  max-width: 1600px;
+}
+
+.contacto__layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 44vw) 1fr;
+  align-items: center;
+  gap: var(--space-3xl);
+}
+
+/* El tamaño exacto lo fija el JS al calcular el aterrizaje del sprite. */
+.contacto__visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.contacto__visual-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Oculta hasta que el sprite termina de llegar: si se viera antes, habría un
+     Totoro esperando en el slot y se perdería el efecto de llegada. La enciende
+     .is-arrived desde el ScrollTrigger del vuelo. */
+  opacity: 0;
+}
+
+.contacto__visual.is-arrived .contacto__visual-img {
+  opacity: 1;
+}
+
+.contacto__texto {
+  text-align: left;
+  max-width: 520px;
+}
+
+.contacto__texto h2 {
+  margin-bottom: var(--space-md);
+}
+
+.contacto__texto p {
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-2xl);
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.contacto__redes {
+  display: flex;
+  gap: var(--space-xl);
+  justify-content: flex-start;
+  margin-top: var(--space-2xl);
+}
+
+/* --- Tablet --- */
+@media (max-width: 1024px) {
+  .contacto__layout {
+    grid-template-columns: minmax(220px, 30vw) 1fr;
+    gap: var(--space-2xl);
+  }
+}
+
+/* --- Celular: una columna, todo centrado --- */
+@media (max-width: 768px) {
+  .contacto {
+    height: auto;
+    background-color: transparent;
+  }
+
+  .contacto__fijo {
+    position: static;
+    height: auto;
+    padding: var(--space-3xl) 0;
+  }
+
+  .contacto__layout {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  /* Se mantiene visible: es el destino donde aterriza el sprite de Totoro. */
+  .contacto__visual {
+    width: min(60vw, 260px);
+    margin: 0 auto var(--space-lg);
+  }
+
+  .contacto__texto {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .contacto__texto p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .contacto__redes {
+    justify-content: center;
+  }
+}

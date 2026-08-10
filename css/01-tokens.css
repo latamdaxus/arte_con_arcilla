@@ -1,0 +1,100 @@
+/* ============================================================================
+   CAPA 1 — TOKENS
+   Variables de diseño: paleta, tipografía, escalas y transiciones. Es la única
+   capa que declara custom properties, y no contiene ni un selector de elemento
+   ni de clase.
+
+   Las redefiniciones por breakpoint viven acá mismo, inmediatamente después de
+   los valores base: tienen la misma especificidad (:root), así que dependen del
+   orden de aparición y agruparlas mantiene la escala tipográfica en un solo
+   lugar.
+   ============================================================================ */
+
+/* La fuente se importa desde acá y no con un <link> en el HTML para no alterar
+   el orden de carga que ya tenía la hoja monolítica. Ver la nota sobre la
+   composición de capas en index.html. */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  /* Colores */
+  --crema: #F5F0E8;
+  --arena: #E8DCC8;
+  --terracota: #C1654A;
+  --tierra: #8B6B4A;
+  --carbon: #3A2F28;
+  --arcilla: #D4A574;
+  --blanco: #FFFDF8;
+  --terracota-hover: #A8533B;
+  --sombra-suave: rgba(58, 47, 40, 0.08);
+  --sombra-media: rgba(58, 47, 40, 0.15);
+
+  /* Tipografía */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Tamaños de fuente */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.5rem;
+  --text-5xl: 3.5rem;
+  --text-6xl: 4.5rem;
+
+  /* Espaciado */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+  --space-5xl: 8rem;
+
+  /* Bordes */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-full: 50%;
+
+  /* Transiciones */
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  --transition-slower: 0.8s ease;
+
+  /* Layout */
+  --max-width: 1200px;
+  --navbar-height: 80px;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  :root {
+    --text-5xl: 2.75rem;
+    --text-4xl: 2rem;
+  }
+}
+
+/* Celular */
+@media (max-width: 768px) {
+  :root {
+    --text-5xl: 2.25rem;
+    --text-4xl: 1.75rem;
+    --text-3xl: 1.5rem;
+    --navbar-height: 65px;
+  }
+}
+
+/* Celular chico */
+@media (max-width: 480px) {
+  :root {
+    --text-5xl: 1.875rem;
+    --text-4xl: 1.5rem;
+  }
+}

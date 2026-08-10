@@ -1,68 +1,38 @@
-// --- Navbar scroll effect ---
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 50) {
-    navbar.classList.add('scrolled');
-  } else {
-    navbar.classList.remove('scrolled');
-  }
-});
+/* ============================================================================
+   PUNTO DE ENTRADA
+   Único lugar con efectos: cada módulo exporta una función de inicio y acá se
+   orquesta el orden. El orden importa porque los ScrollTrigger se recalculan en
+   el orden en que se crean, y el carrusel es el que "pinnea" su sección.
 
-// --- Mobile menu toggle ---
-const navToggle = document.getElementById('navToggle');
-const navLinks = document.getElementById('navLinks');
+   GSAP y ScrollTrigger llegan por CDN como scripts clásicos, así que están en el
+   ámbito global antes de que corra este módulo (los módulos se ejecutan
+   diferidos, después de parsear el documento).
+   ============================================================================ */
 
-navToggle.addEventListener('click', () => {
-  navLinks.classList.toggle('active');
-  // Animate hamburger to X
-  navToggle.classList.toggle('active');
-});
+import { iniciarTaller } from './secciones/taller.js';
+import { iniciarCarrusel } from './secciones/coleccion-carrusel.js';
+import { precargarFondosVacios, iniciarAperturaDeTarjeta } from './secciones/coleccion-tarjetas.js';
+import { iniciarPuenteVanGogh } from './secciones/puente-van-gogh.js';
+import { iniciarPuenteTotoro } from './secciones/puente-totoro.js';
+import { iniciarNavegacion } from './ui/navegacion.js';
+import { iniciarRevelado } from './ui/revelado.js';
 
-// Close mobile menu on link click
-navLinks.querySelectorAll('a').forEach(link => {
-  link.addEventListener('click', () => {
-    navLinks.classList.remove('active');
-    navToggle.classList.remove('active');
-  });
-});
+gsap.registerPlugin(ScrollTrigger);
 
-// --- Scroll fade-in animations (IntersectionObserver) ---
-const observerOptions = {
-  root: null,
-  rootMargin: '0px',
-  threshold: 0.15
-};
+// 1. Scrollytelling del taller: secuencia de frames y paneles de texto.
+iniciarTaller();
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      observer.unobserve(entry.target);
-    }
-  });
-}, observerOptions);
+// 2. Carrusel de la colección (crea el pin de la sección).
+iniciarCarrusel();
 
-document.querySelectorAll('.fade-in, .fade-in-left, .fade-in-right').forEach(el => {
-  observer.observe(el);
-});
+// 3. Estado de las tarjetas, que acompaña a los vuelos.
+precargarFondosVacios();
+iniciarAperturaDeTarjeta();
 
-// --- Active nav link highlight on scroll ---
-const sections = document.querySelectorAll('section[id]');
-const navLinksAll = document.querySelectorAll('.navbar-links a');
+// 4. Los dos vuelos de sprites entre secciones.
+iniciarPuenteVanGogh();
+iniciarPuenteTotoro();
 
-window.addEventListener('scroll', () => {
-  let current = '';
-  sections.forEach(section => {
-    const sectionTop = section.offsetTop - 100;
-    if (window.scrollY >= sectionTop) {
-      current = section.getAttribute('id');
-    }
-  });
-
-  navLinksAll.forEach(link => {
-    link.style.color = '';
-    if (link.getAttribute('href') === `#${current}`) {
-      link.style.color = 'var(--terracota)';
-    }
-  });
-});
+// 5. Interfaz general.
+iniciarNavegacion();
+iniciarRevelado();

@@ -1,0 +1,25 @@
+/* ============================================================================
+   COMPONENTE — Enlaces sociales
+   Los círculos de contacto. La variante del pie tiene su propio tamaño y borde,
+   y vive en componentes/pie.css junto al resto del pie.
+   ============================================================================ */
+
+.red-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background-color: var(--arena);
+  color: var(--tierra);
+  font-size: var(--text-xl);
+  transition: all var(--transition-base);
+}
+
+.red-social:hover {
+  background-color: var(--terracota);
+  color: var(--blanco);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(193, 101, 74, 0.25);
+}

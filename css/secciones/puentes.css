@@ -1,0 +1,31 @@
+/* ============================================================================
+   SECCIÓN — Puentes animados (Van Gogh y Totoro)
+   Cada puente es un tramo de scroll que sirve de pista para el vuelo de un
+   sprite. El canvas del sprite va fijo sobre la página y lo posiciona el JS.
+   ============================================================================ */
+
+.puente {
+  position: relative;
+  height: 10vh;
+  background-color: var(--carbon);
+}
+
+/* En celular las secciones son de alto automático y no dejan recorrido entre
+   una y otra (en desktop lo aporta el tramo final de las secciones "pinneadas"),
+   así que el puente tiene que aportarlo él mismo. */
+@media (max-width: 768px) {
+  .puente {
+    height: 100vh;
+  }
+}
+
+.puente__sprite {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}

@@ -1,0 +1,240 @@
+/* ============================================================================
+   SECCIÓN — Colección destacada
+   Contenedor "pinneado", sidebar con contador y pista horizontal del carrusel.
+   La tarjeta en sí está en componentes/tarjeta-coleccion.css.
+   ============================================================================ */
+
+.coleccion {
+  position: relative;
+  height: 400vh;
+  background-color: var(--carbon);
+}
+
+.coleccion__fijo {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+}
+
+.coleccion__layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Sidebar --- */
+.coleccion__sidebar {
+  width: 300px;
+  min-width: 300px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 2.5rem 3rem 3rem;
+  background: var(--carbon);
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.coleccion__sidebar::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 253, 248, 0.15), transparent);
+}
+
+.coleccion__encabezado {
+  margin-bottom: 2.5rem;
+}
+
+.coleccion__encabezado .antetitulo {
+  color: var(--arcilla);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.coleccion__encabezado h2 {
+  color: var(--blanco);
+  font-size: var(--text-3xl);
+  margin-bottom: 1rem;
+  line-height: 1.15;
+}
+
+.coleccion__encabezado p {
+  color: rgba(255, 253, 248, 0.55);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
+/* --- Contador y barra de progreso --- */
+.coleccion__progreso {
+  margin-bottom: 2.5rem;
+}
+
+.coleccion__contador {
+  font-family: var(--font-display);
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.875rem;
+}
+
+.coleccion__contador #active-card-num {
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  color: var(--blanco);
+  line-height: 1;
+  min-width: 2.5ch;
+  display: inline-block;
+}
+
+.coleccion__contador .coleccion__contador-sep {
+  font-size: var(--text-lg);
+  color: rgba(255, 253, 248, 0.3);
+  margin: 0 0.1rem;
+}
+
+.coleccion__contador .coleccion__contador-total {
+  font-size: var(--text-lg);
+  color: rgba(255, 253, 248, 0.3);
+}
+
+.coleccion__barra {
+  height: 2px;
+  background: rgba(255, 253, 248, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.coleccion__barra-relleno {
+  height: 100%;
+  width: 25%;
+  background: linear-gradient(to right, var(--arcilla), var(--terracota));
+  border-radius: 2px;
+  transform-origin: left;
+  transition: width 0.1s linear;
+}
+
+.coleccion__pieza-activa {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  color: rgba(255, 253, 248, 0.5);
+  font-style: italic;
+  letter-spacing: 0.5px;
+  min-height: 1.5em;
+}
+
+.coleccion__cta {
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+/* --- Pista del carrusel --- */
+.coleccion__pista {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.coleccion__tira {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 0 15vw 0 6vw;
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------------
+   Celular: la sección deja de estar "pinneada" y el carrusel pasa a ser una
+   tira de scroll horizontal normal.
+
+   OJO CON EL ORDEN respecto al bloque de 1024px de más abajo: se mantiene el
+   mismo orden que tenía la hoja monolítica para no cambiar el render. Ver la
+   nota en componentes/tarjeta-coleccion.css.
+   --------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .coleccion {
+    height: auto;
+    background-color: var(--arena);
+  }
+
+  .coleccion__fijo {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding: var(--space-3xl) 0 var(--space-2xl);
+  }
+
+  .coleccion__layout {
+    flex-direction: column;
+  }
+
+  .coleccion__sidebar {
+    width: 100%;
+    min-width: unset;
+    padding: 0 var(--space-md) var(--space-2xl);
+    background: transparent;
+  }
+
+  .coleccion__sidebar::after {
+    display: none;
+  }
+
+  .coleccion__encabezado h2 {
+    color: var(--carbon);
+  }
+
+  .coleccion__encabezado .antetitulo {
+    color: var(--terracota);
+  }
+
+  .coleccion__encabezado p {
+    color: var(--tierra);
+  }
+
+  .coleccion__progreso {
+    display: none;
+  }
+
+  .coleccion__cta {
+    margin-top: var(--space-lg);
+    padding-top: 0;
+  }
+
+  .coleccion__pista {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 var(--space-md) var(--space-xl);
+  }
+
+  .coleccion__pista::-webkit-scrollbar {
+    display: none;
+  }
+
+  .coleccion__tira {
+    padding: 0;
+    gap: 1.25rem;
+    transform: none !important; /* Desactivar GSAP en mobile */
+  }
+}
+
+/* --- Tablet (ver la nota de orden más arriba) --- */
+@media (max-width: 1024px) {
+  .coleccion__sidebar {
+    width: 260px;
+    min-width: 260px;
+  }
+}

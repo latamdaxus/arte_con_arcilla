@@ -1,0 +1,137 @@
+/* ============================================================================
+   COMPONENTE — Barra de navegación
+   Incluye el menú desplegable de celular. La clase de estado .is-scrolled la
+   aplica ui/navegacion.js.
+   ============================================================================ */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--navbar-height);
+  z-index: 1000;
+  transition: all var(--transition-base);
+  background: transparent;
+}
+
+.navbar.is-scrolled {
+  background: rgba(255, 253, 248, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 20px var(--sombra-suave);
+}
+
+.navbar .contenedor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.navbar__logo {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--blanco);
+  transition: color var(--transition-base);
+}
+
+.navbar.is-scrolled .navbar__logo {
+  color: var(--carbon);
+}
+
+.navbar__menu {
+  display: flex;
+  gap: var(--space-2xl);
+}
+
+.navbar__menu a {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255, 253, 248, 0.85);
+  position: relative;
+  padding-bottom: 4px;
+  transition: color var(--transition-base);
+}
+
+.navbar.is-scrolled .navbar__menu a {
+  color: var(--tierra);
+}
+
+.navbar__menu a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--terracota);
+  transition: width var(--transition-base);
+}
+
+.navbar__menu a:hover {
+  color: var(--terracota);
+}
+
+.navbar__menu a:hover::after {
+  width: 100%;
+}
+
+/* --- Botón hamburguesa (sólo visible en celular) --- */
+.navbar__hamburguesa {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.navbar__hamburguesa span {
+  display: block;
+  width: 25px;
+  height: 2px;
+  background-color: var(--blanco);
+  transition: all var(--transition-base);
+}
+
+.navbar.is-scrolled .navbar__hamburguesa span {
+  background-color: var(--carbon);
+}
+
+/* --- Celular: el menú pasa a panel desplegable --- */
+@media (max-width: 768px) {
+  .navbar__hamburguesa {
+    display: flex;
+  }
+
+  .navbar__menu {
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    right: 0;
+    background: rgba(255, 253, 248, 0.98);
+    backdrop-filter: blur(10px);
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-2xl) 0;
+    gap: var(--space-xl);
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: all var(--transition-base);
+  }
+
+  .navbar__menu.is-active {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
+    box-shadow: 0 10px 30px var(--sombra-media);
+  }
+
+  .navbar__menu a {
+    color: var(--carbon) !important;
+    font-size: var(--text-base);
+  }
+}

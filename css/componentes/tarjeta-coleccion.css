@@ -1,0 +1,123 @@
+/* ============================================================================
+   COMPONENTE — Tarjeta de la colección
+   La pieza en sí: marco, foto, capa de fondo vacío y etiqueta. El carrusel que
+   las mueve vive en secciones/coleccion.css; acá sólo está la tarjeta.
+   ============================================================================ */
+
+.tarjeta {
+  flex-shrink: 0;
+  width: 28vw;
+  height: 72vh;
+  cursor: pointer;
+  transform-origin: center center;
+  will-change: transform, opacity, filter;
+  position: relative;
+}
+
+/* El marco va posicionado en absoluto y centrado: así el JS puede ensancharlo
+   para "abrir" la tarjeta al recibir la pieza sin alterar el ancho que el
+   carrusel usa para calcular el centrado. */
+.tarjeta__marco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  transform: translateX(-50%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+.tarjeta__foto {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.tarjeta__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Capa con la foto del fondo sin la pieza. Se enciende cuando la pieza "no
+   está" en la tarjeta: antes de que el plato aterrice, o después de que la
+   figura sale volando. */
+.tarjeta__vacia {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tarjeta__foto.is-empty .tarjeta__vacia {
+  opacity: 1;
+}
+
+/* --- Etiqueta sobreimpresa --- */
+.tarjeta__etiqueta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1.75rem 1.75rem;
+  background: linear-gradient(to top, rgba(20, 14, 10, 0.85) 0%, rgba(20, 14, 10, 0.4) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.tarjeta__categoria {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--arcilla);
+  font-weight: 500;
+}
+
+.tarjeta__nombre {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--blanco);
+}
+
+.tarjeta__precio {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--arcilla);
+  letter-spacing: 0.5px;
+}
+
+/* ---------------------------------------------------------------------------
+   Tamaños por breakpoint.
+
+   OJO CON EL ORDEN: el bloque de 768px va ANTES del de 1024px a propósito, para
+   reproducir exactamente la cascada de la hoja monolítica, donde el fallback
+   móvil de la colección estaba escrito antes del bloque general de tablet. Con
+   igual especificidad gana el último, así que a 430px de ancho terminan
+   aplicando los 36vw/65vh de la regla de 1024 y no los 75vw/55vh de la de 768.
+   Invertir estos dos bloques cambiaría el render en celular. Ver la nota sobre
+   este defecto en el resumen del refactor.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .tarjeta {
+    width: 75vw;
+    height: 55vh;
+    /* En celular no hay profundidad de campo: se anulan los efectos del GSAP. */
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .tarjeta {
+    width: 36vw;
+    height: 65vh;
+  }
+}
